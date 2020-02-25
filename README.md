@@ -7,12 +7,14 @@
 
 > For Netflix and VPN users
 
-> Node.js, Express.js, EJS, Axios
+> Node.js, Express.js, EJS, Axios, jQuery
 
 
 ## Installation
 
 - npm install
+- get your free API keys for: <a href="https://rapidapi.com/unogs/api/unogs"> uNoGS </a>, <a href="https://www.omdbapi.com/apikey.aspx"> OMDb  </a>.
+- insert your API keys to /routes/index.js and /routes/movie.js
 - node demo
 
 
