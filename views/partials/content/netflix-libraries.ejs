@@ -1,0 +1,22 @@
+<div class="container message shadow ">
+    <div class="row">
+        <div class="col-md-7 col-lg-9 why">
+            <h2><span class="netflix-style">Netflix</span> library is different all around the world. </h3>
+            <h3>Using <a href="https://www.techradar.com/vpn/best-vpn" target="_blank">VPN service</a> you can access tons of geo-restricted content. </h2>
+        </div>
+        <div class="col-md-5 col-lg-3 ">
+            <div class="slider-countries">
+                <% countries.forEach((item, index) => { %>
+                <div class="slider-img-<%= index %> slider-item ">
+                    <div class="img-country">
+                        <img src="/images/<%= item.img %>" alt="<%= item.title %>">
+                    </div>
+                    <div class="titles-country">
+                        <span class="spantitles"><%= item.library %> titles</span>
+                    </div>
+                </div>
+                <% }); %>
+            </div>
+        </div>  
+    </div>
+</div>

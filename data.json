@@ -1,0 +1,41 @@
+{
+    "countries": [{
+        "index": 1,
+        "title": "DK",
+        "library": "3 305",
+        "img": "denmark.svg"
+    },{
+        "index": 2,
+        "title": "USA",
+        "library": "5 609",
+        "img": "usa.svg"
+    },{
+        "index": 3,
+        "title": "CZ",
+        "library": "3 850",
+        "img": "czechia.svg"
+    }
+    ,{
+        "index": 4,
+        "title": "INDIA",
+        "library": "4 706",
+        "img": "india.svg"
+    }
+    ,{
+        "index": 5,
+        "title": "UK",
+        "library": "5 108",
+        "img": "uk.svg"
+    }
+    ,{
+        "index": 6,
+        "title": "JAPAN",
+        "library": "6 032",
+        "img": "japan.svg"
+    },{
+        "index": 7,
+        "title": "SWITZERLAND",
+        "library": "3 556",
+        "img": "switzerland.svg"
+    }]
+}

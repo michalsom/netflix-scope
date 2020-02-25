@@ -1,0 +1,23 @@
+<div class="container">
+    <div class="searchWrap">
+        <div class="radioWrap">
+          <span class="legend">Search for: </span>
+          <input type="radio" id="radio-all" name="typeFilter" value="" checked="checked" /> <label for="radio-all">All</label>
+          <input type="radio" id="radio-movies" name="typeFilter" value="&type=Movie" /> <label for="radio-movies">Movies</label>
+          <input type="radio" id="radio-series" name="typeFilter" value="&type=Series" /> <label for="radio-series">Series</label>
+        </div>
+        <form id="searchForm">
+          <div class="row">
+              <div class="iconSVG">
+                  <img src="/images/magglass.svg" aria-hidden="true">
+              </div>
+            <div class="col-md-9 col-lg-10 form-column">
+                <input required type="text" class="form-control" id="searchText" placeholder="Type the name of the title you want to watch...">
+            </div>
+            <div class="col-md-3 col-lg-2 form-column">
+                <button class="btn  btnSend" type="submit">Search</button>
+            </div>
+          </div>
+        </form>
+    </div>
+</div>

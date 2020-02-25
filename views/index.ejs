@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <% include partials/template/head.ejs %>
+  <body class="indexPage">
+    <% include partials/template/header.ejs %>
+    <% include partials/content/netflix-libraries.ejs %>
+    <div class="container">
+      <div class="row">
+        <div class="col-12 find-out ">
+          <h3>  Find out if the title you want to watch is on Netflix and where it is available. </h3>
+        </div>
+      </div>
+    </div>
+    <% include partials/content/search.ejs %>
+    <% include partials/content/search-result.ejs %>
+    <% include partials/template/footer.ejs %>
+    <% include partials/content/loader.ejs %>
+    <% include partials/template/scripts.ejs %>
+  </body>
+</html>
