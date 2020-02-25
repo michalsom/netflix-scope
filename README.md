@@ -5,17 +5,16 @@
 
 > Find if the movie is available on Netflix and in which countries.
 
-> For Netflix and VPN users
+> Useful for Netflix and VPN users
 
 > Node.js, Express.js, EJS, Axios, jQuery
 
 
 ## Installation
 
-- npm install
 - get your free API keys for: <a href="https://rapidapi.com/unogs/api/unogs"> uNoGS </a>, <a href="https://www.omdbapi.com/apikey.aspx"> OMDb  </a>.
 - insert your API keys to /routes/index.js and /routes/movie.js
-- node demo
+- open terminal in root folder and run "npm install" and "node demo"
 
 
 ## License
