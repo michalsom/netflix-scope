@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
   <% include partials/template/head.ejs %>
-  <body class="movie-page">
+  <body data-id=<%=movieID%> id="movie-page">
     <% include partials/template/header.ejs %>
     <div class="container go-back">
       <div class="row">
         <div class=" column-go-back col-md-4">
-            <a href="javascript:history.back()"><img src="/images/arrow-left.svg" alt="go back"> <span>Return to Search</span> </a>
+            <a href="/"><img src="/images/arrow-left.svg" alt="go back"> <span>Return to Search</span> </a>
         </div>
       </div>
     </div>
