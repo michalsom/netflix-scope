@@ -1,215 +1,176 @@
-var filter = sessionStorage.getItem('searchedFilter') || 'titles';
+var filter;
 var currentSearch;
 $(document).ready(() => {
-  flagsSlider();
-  setInterval(flagsSlider, 2000)
-  $('#searchForm').on('submit', executeSearch);
-  $('input[type=radio][name=typeFilter]').on('change', function () {
-    filter = this.value;
-    if (filter === 'titles') {
-      $('input:text#searchText').attr('placeholder', 'Type the name of movie or TV show ...');
+    flagsSlider();
+    setInterval(flagsSlider,2000)
+    $('#searchForm').on('submit', executeSearch);
+    $('input[type=radio][name=typeFilter]').on('change', function() {
+      filter = this.value;
+      if (filter === '&type=Movie'){
+        $('input:text#searchText').attr('placeholder','Type the name of the movie you want to watch...');
+        }
+      else if (filter === '&type=Series'){
+        $('input:text#searchText').attr('placeholder','Type the name of the series you want to watch...');
+        }
+      else{
+        $('input:text#searchText').attr('placeholder','Type the name of the title you want to watch...');
+        }
+    });
+    if (sessionStorage.getItem('lastSearch')){
+        $('.movies-wrap').html(sessionStorage.getItem('lastSearch'));
+        $('#searchText').val(sessionStorage.getItem('searchedText'));
+        if ($('body').hasClass('indexPage')){
+            sessionStorage.removeItem('lastSearch');
+        }
     }
-    else if (filter === 'people') {
-      $('input:text#searchText').attr('placeholder', 'Type the name of the actor, director or creator...');
-    }
-  });
-  if (sessionStorage.getItem('lastSearch')) {
-    if (sessionStorage.getItem('searchedFilter') === 'people') {
-      $('#radio-people').prop("checked", true);
-      console.log('tried mark people')
-    }
-    $('.movies-wrap').html(sessionStorage.getItem('lastSearch'));
-    $('#searchText').val(sessionStorage.getItem('searchedText'));
-    if ($('body').hasClass('indexPage')) {
-      sessionStorage.removeItem('lastSearch');
-      sessionStorage.removeItem('searchedFilter');
-      sessionStorage.removeItem('searchedText')
-    }
-  }
 });
 
 var activeDiv = 1;
 var count = $(".slider-countries .slider-item").length;
 
-function flagsSlider() {
-  $('.slider-item.passed').removeClass('passed');
-  $('.slider-img-' + activeDiv).addClass('passed').removeClass('active');
-  activeDiv++;
-  if (activeDiv === count) {
-    activeDiv = 1
-  }
-  $('.slider-img-' + activeDiv).addClass('active');
+function flagsSlider(){
+    $('.slider-item.passed').removeClass('passed');
+    $('.slider-img-'+ activeDiv).addClass('passed').removeClass('active');
+    activeDiv++;
+    if (activeDiv === count){
+      activeDiv = 1
+    }
+    $('.slider-img-'+ activeDiv).addClass('active');
 }
 
-function executeSearch(e) {
-  e.preventDefault();
-  let searchText = $('#searchText').val();
-  if (searchText !== '') {
-    if (filter == 'people') {
-      getPeople(searchText, 0)
+function executeSearch(e){
+    e.preventDefault();
+    let searchText = $('#searchText').val();
+    if (searchText !== ''){
+        getMovies(searchText)
+        $('.searchWrap').addClass('used');
+        currentSearch = searchText;
+        sessionStorage.setItem('searchedText', searchText);
     }
-    else {
-      getMovies(searchText, 0)
-    }
-    currentSearch = searchText;
-    sessionStorage.setItem('searchedText', searchText);
-    sessionStorage.setItem('searchedFilter', filter)
-  }
 }
 
 
-let totalResults;
-
-
-function getPeople(searchText, page) {
-  $('.loader').addClass('active');
-
-  var data = {
-    currentSearch: $.trim(searchText),
-    page: page
-  };
-  $.ajax({
-    url: '/searchPeople',
-    data: data,
-    method: 'POST'
-  }).then((response) => {
-    console.log(response);
-    let movies = response.results;
-    if (response) {
-      totalResults = response.total;
+function loadPage(page){
+    $('.loader').addClass('active');
+    $('#movies').css('min-height', ($('#movies').height()));
+    if( sessionStorage.getItem('searchedText') !== null) {
+      currentSearch = sessionStorage.getItem('searchedText')
     }
-    let pagination = '';
-    let outputTitle = `
-          <div class="results-title"> <span>Netflix results for: '${searchText}'</span><span class="amount"> (${totalResults})<span> </div>
-          `;
-    if (totalResults === 0) {
-      console.log('did')
-      movies = 0;
-      outputTitle = `
-          <div class="results-title"> <span>Nothing found for: '${searchText}'</span><p>check for errors and try again</p></div>
-          `;
-    }
-    let output = "";
-
-    $.each(movies, (index, movie) => {
-
-      output += `
-              <div onclick='movieSelected("${movie.netflixid}","${movie.title}")'  class="col-sm-6 col-md-4 col-lg-3 item-movie ">
-                <div class="well text-center result-bg">
-                  <h3 class="person-name"> ${movie.fullname}</h3>
-                  <h2 class="movie-name">${movie.title}</h2>
+      var data = {
+        currentSearch: $.trim(currentSearch),
+        filter: filter,
+        page: page
+      };
+      $.ajax({
+        url: '/send',
+        data: data,
+        method: 'POST'}).then((response) => {
+        let movies = response.Search;
+        let output = "";
+        
+        $.each(movies, (index, movie) => {
+         
+            let animationDelay = 'style="animation-delay:'+ index +'00ms"';
+          if(movie.Poster === 'N/A'){
+            movie.Poster = 'images/404.svg'
+          }
+          output += `
+            <div onclick="movieSelected('${movie.imdbID}')" ${animationDelay} class="col-sm-6 col-md-4 col-lg-3 item-movie">
+              <div class="well text-center">
+                <div class="poster-frame">
+                  <img alt="poster of ${movie.Title}" class="shadow lazyload" src="images/def.svg" data-src="${movie.Poster}">
+                </div>  
+                <h5>${movie.Title}</h5>
+                <div class="floating-button">
+                  <a class="btn btn-primary" href="#">Learn more details</a>
                 </div>
               </div>
-            `;
-    });
-    if (totalResults > movies.length) {
-      console.log('more results available')
-      pagination += `
-            <div>
-             <button onclick='getPeople("${data.currentSearch}",${data.page + 1})' class="button-more">Show more results</button>
             </div>
           `;
-    }
+        });
+        $('.item-movie').children().fadeOut();
+        $('#movies').html('');
+        $('#movies').html(output);
+        $('.loader, .link').removeClass('active');
+        $('#link'+page).addClass('active');
+        $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'medium');
+    })
+      .catch((err) => {
+        console.log(err);
+      });
+    };
 
-    $('#wrap-title').html(outputTitle);
-    if (data.page === 0) {
-      $('#movies').html(output);
-      $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'fast');
-    }
-    else {
-      $('#movies').append(output)
-    }
-    $('#pagination').html(pagination);
-    $('.loader').removeClass('active');
-    $('#link1').addClass('active');
-  })
-}
-
-function getMovies(searchText, page) {
-  $('.loader').addClass('active');
-
-  var data = {
-    currentSearch: $.trim(searchText),
-    filter: filter,
-    page: page
-  };
-  $.ajax({
-    url: '/searchTitles',
-    data: data,
-    method: 'POST'
-  }).then((response) => {
-    console.log(response);
-    console.log(response.results);
-    let movies = response.results;
-    if (response.total) {
-      totalResults = response.total;
-    }
-    let pagination = '';
-    let outputTitle = `
-          <div class="results-title"> <span>Netflix results for: '${searchText}'</span><span class="amount"> (${totalResults})<span> </div>
-          `;
-    if (!totalResults || totalResults == 0) {
-      movies = 0;
-      outputTitle = `
-          <div class="results-title"> <span>Nothing found for: '${searchText}'</span><p>check for errors and try again</p></div>
-          `;
-    }
-    let output = "";
-    var i;
-    $.each(movies, (index, movie) => {
-      if (!movie.img || movie.img === 'N/A') {
-        movie.img = 'img/404.svg'
-      }
-
-      output += `
-              <div onclick='movieSelected("${movie.nfid}","${movie.title}")'  class="col-sm-6 col-md-4 col-lg-3 item-movie">
+function getMovies(searchText){
+    $('.loader').addClass('active');
+    var data = {
+        currentSearch: $.trim(searchText),
+        filter: filter,
+        page: '1'
+    };
+    $.ajax({
+        url: '/send',
+        data: data,
+        method: 'POST'}).then((response) => {
+        let movies = response.Search;
+        let totalResults = (parseInt(response.totalResults) > 200 ? '200' : response.totalResults);
+        let pages = Math.round(response.totalResults / 10);
+        let pagination = '';
+        let outputTitle = `
+        <div class="results-title"> <span>Results for: '${searchText}'</span><span class="amount"> (${totalResults})<span> </div>
+        `;
+        if(!totalResults){
+            outputTitle = `
+        <div class="results-title"> <span>Nothing found for: '${searchText}'</span><p>check for errors and try again</p></div>
+        `;
+        }
+        let output = "";
+        var i;
+        $.each(movies, (index, movie) => {
+            let animationDelay = 'style="animation-delay:'+ index +'00ms"';
+            if(movie.Poster=== 'N/A'){
+            movie.Poster = 'images/404.svg'
+            }
+            output += `
+            <div onclick="movieSelected('${movie.imdbID}')" ${animationDelay} class="col-sm-6 col-md-4 col-lg-3 item-movie">
                 <div class="well text-center">
-                  <div class="poster-frame">
-                    <div class="movie-rating-wrap">
-                      <span class="movie-rating"> 
-                      ${movie.imdbrating || '-'} 
-                      </span>
+                    <div class="poster-frame">
+                        <img alt="poster of ${movie.Title}" class="shadow lazyload" src="images/def.svg" data-src="${movie.Poster}">
+                    </div>  
+                    <h5>${movie.Title}</h5>
+                    <div class="floating-button">
+                        <a class="btn btn-primary" href="#">Learn more details</a>
                     </div>
-                    <img alt="poster of ${movie.title}" class="lazyload poster-img" src="images/def.svg" data-src="${movie.img}" onerror="imgError(this);">
-                  </div>  
-                  <h2 class="movie-name">${movie.title}</h2>
                 </div>
-              </div>
-            `;
-    });
-    if (totalResults > movies.length + 40 * page) {
-      console.log('more results available ' + movies.length + ' ' + page)
-      pagination += `
-            <div>
-             <button onclick='getMovies("${data.currentSearch}",${data.page + 1})' class="button-more">Show more results</button>
             </div>
-          `;
-    }
-
-    $('#wrap-title').html(outputTitle);
-    if (data.page === 0) {
-      $('#movies').html(output);
-      $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'fast');
-    }
-    else {
-      $('#movies').append(output)
-    }
-    $('#pagination').html(pagination);
-    $('.loader').removeClass('active');
-    $('#link1').addClass('active');
-  })
-    .catch((err) => {
-      console.log(err);
+            `;
+        });
+        if(pages > 30){
+            pages = 20;
+        }
+        for(i = 0; i < pages ; i++){
+            pagination += `
+            <div class="page page${i + 1}">
+            <a onclick="loadPage('${i + 1}')" id="link${i+1}"class="link"> ${i + 1}</a>
+            </div>
+        `;
+        }
+        $('#wrap-title').html(outputTitle);
+        $('#movies').html(output);
+        $('#pagination').html(pagination);
+        $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'medium');
+        $('.loader').removeClass('active');
+        $('#link1').addClass('active');
+        })
+        .catch((err) => {
+        console.log(err);
     });
 }
 
-function movieSelected(id, title) {
-  sessionStorage.setItem('movieId', id);
-  window.location = '/movie/' + id + '/' + title;
-  sessionStorage.setItem('lastSearch', $('.movies-wrap').html());
-  sessionStorage.setItem('searchedText', searchText.value);
-  sessionStorage.setItem('searchedFilter', filter);
-  return false;
+function movieSelected(id){
+    sessionStorage.setItem('movieId', id);
+    window.location = '/movie/'+ id;
+    sessionStorage.setItem('lastSearch',$('.movies-wrap').html());
+    sessionStorage.setItem('searchedText', searchText.value);
+    sessionStorage.setItem('searchedFilter', filter);
+    return false;
 }
-
-

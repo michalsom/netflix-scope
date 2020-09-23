@@ -1,13 +1,10 @@
 <div class="container">
     <div class="searchWrap">
         <div class="radioWrap">
-          <span class="legend">Search by: </span>
-          <div class="container-title">
-            <input type="radio" id="radio-title" name="typeFilter" value="titles" checked="checked"/> <label for="radio-title">title</label> 
-          </div>
-          <div class="container-people">
-            <input type="radio" id="radio-people" name="typeFilter" value="people"/> <label for="radio-people">actor, director</label>
-          </div>
+          <span class="legend">Search for: </span>
+          <input type="radio" id="radio-all" name="typeFilter" value="" checked="checked" /> <label for="radio-all">All</label>
+          <input type="radio" id="radio-movies" name="typeFilter" value="&type=Movie" /> <label for="radio-movies">Movies</label>
+          <input type="radio" id="radio-series" name="typeFilter" value="&type=Series" /> <label for="radio-series">Series</label>
         </div>
         <form id="searchForm">
           <div class="row">
