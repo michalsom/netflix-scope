@@ -1,44 +1,36 @@
 <div id="movie" class=" container well">
     <div class="row">
         <div class="movie-title">
-            <h2><%= moviePage.Title %></h2>
+            <h2 id="movie-title"><%= movieTitle %></h2>
         </div>
 
         <div class="col-md-4 big-pic">
             <div class="big-pic">
-                <img src="<%= moviePage.Poster %>" class="thumbnail">
+                <img id="poster" src="/images/placeholder.jpg" onerror="imgError(this);" class="thumbnail">
             </div>
 
             <div class="rates">
-                <li class="list-group-item"><strong>IMDB Rating:</strong> <%= moviePage.imdbRating %></li>
+                <li class="list-group-item"><strong>IMDB Rating:</strong> <span id="imdb-rating"></span></li>
             </div>
 
-            <div class="btn netflix" onClick="searchNetflix('<%= moviePage.imdbID %>')" >
-                <p> Check availability on Netflix</p>
-            </div>
         </div>
 
         <div class="col-md-8 about-movie">
-            <ul class="list-group">
-                <li class="list-group-item"><strong>Genre:</strong> <%= moviePage.Genre %></li>
-                <li class="list-group-item"><strong>Released:</strong> <%= moviePage.Released %></li>
-                <li class="list-group-item"><strong>Rated:</strong> <%= moviePage.Rated %></li>
-                <li class="list-group-item"><strong>Director:</strong> <%= moviePage.Title %></li>
-                <li class="list-group-item"><strong>Writer:</strong> <%= moviePage.Writer %></li>
-                <li class="list-group-item"><strong>Actors:</strong> <%= moviePage.Actors %></li>
+            <ul id="list-about" class="list-group placeholder">
+                <li class="list-group-item">Genres</li>
+                <li class="list-group-item">Production</li>
+                <li class="list-group-item"><strong>Director:</strong> </li>
+                <li class="list-group-item"><strong>Created by:</strong></li>
+                <li class="list-group-item"><strong>Starring:</strong></li>
+                <li class="list-group-item"><strong>Plot:</strong></li>                
             </ul>
-
-            <div class="well plot">
-                <h3>Plot</h3>
-                <%= moviePage.Plot %>
-                <br></br>
-                <a href="http://imdb.com/title/<%= moviePage.imdbID %>" target="_blank" class="btn btn-primary">View on IMDB</a>
-                <a href="/" class="btn btn-default">Go Back To Search</a>
-            </div>
         </div>
 
         <div class="container">
-            <div id="countries" class="row"></div>
+            <h1 class="c-title">Available in:</h1>
+            <div id="countries" class="row">
+                
+            </div>
         </div>
     </div>
 </div>
