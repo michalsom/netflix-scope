@@ -12,11 +12,10 @@
 
 ## Installation
 
-- npm install
-- get your free API keys for: <a href="https://rapidapi.com/unogs/api/unogs"> uNoGS </a>, <a href="https://www.omdbapi.com/apikey.aspx"> OMDb  </a>.
+- 'npm install'
+- get your free API keys for: <a href="https://rapidapi.com/unogs/api/unogs"> uNoGS </a>, <a href="https://rapidapi.com/unogs/api/unogsng"> uNoGS NG  </a>.
 - insert your API keys to /routes/index.js and /routes/movie.js
-- node demo
-
+- 'node demo'
 
 ## License
 
