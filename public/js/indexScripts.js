@@ -1,215 +1,201 @@
-var filter = sessionStorage.getItem('searchedFilter') || 'titles';
-var currentSearch;
-$(document).ready(() => {
+
+var dataPoint = {
+  currentFilter: 'titles',
+  currentFlag: 0,
+  totalFlags: document.getElementsByClassName('slider-item').length,
+  searchBar: document.getElementById('searchText')
+}
+var previousSearchResults = {
+  searchedText: "",
+  searchedFilter: "",
+  movieResults: HTMLElement,
+}
+
+document.addEventListener("DOMContentLoaded", function (event) {
   flagsSlider();
-  setInterval(flagsSlider, 2000)
-  $('#searchForm').on('submit', executeSearch);
-  $('input[type=radio][name=typeFilter]').on('change', function () {
-    filter = this.value;
-    if (filter === 'titles') {
-      $('input:text#searchText').attr('placeholder', 'Type the name of movie or TV show ...');
-    }
-    else if (filter === 'people') {
-      $('input:text#searchText').attr('placeholder', 'Type the name of the actor, director or creator...');
-    }
-  });
-  if (sessionStorage.getItem('lastSearch')) {
-    if (sessionStorage.getItem('searchedFilter') === 'people') {
-      $('#radio-people').prop("checked", true);
-      console.log('tried mark people')
-    }
-    $('.movies-wrap').html(sessionStorage.getItem('lastSearch'));
-    $('#searchText').val(sessionStorage.getItem('searchedText'));
-    if ($('body').hasClass('indexPage')) {
-      sessionStorage.removeItem('lastSearch');
-      sessionStorage.removeItem('searchedFilter');
-      sessionStorage.removeItem('searchedText')
-    }
-  }
+  loadLastResults();
 });
+dataPoint.searchBar.addEventListener("input", closeButton);
+document.getElementById('searchForm').addEventListener("submit", executeSearch);
+document.getElementById('radioWrap').addEventListener("change", changeFilter);
 
-var activeDiv = 1;
-var count = $(".slider-countries .slider-item").length;
-
-function flagsSlider() {
-  $('.slider-item.passed').removeClass('passed');
-  $('.slider-img-' + activeDiv).addClass('passed').removeClass('active');
-  activeDiv++;
-  if (activeDiv === count) {
-    activeDiv = 1
+function changeFilter() {
+  dataPoint.currentFilter = event.target.value;
+  if (dataPoint.currentFilter === 'people') {
+    $('input:text#searchText').attr('placeholder', 'Type the name of the actor, director or creator...');
   }
-  $('.slider-img-' + activeDiv).addClass('active');
+  else {
+    $('input:text#searchText').attr('placeholder', 'Type the name of movie or TV show ...');
+  }
 }
 
-function executeSearch(e) {
-  e.preventDefault();
-  let searchText = $('#searchText').val();
-  if (searchText !== '') {
-    if (filter == 'people') {
-      getPeople(searchText, 0)
+function loadLastResults() {
+  if (!sessionStorage.getItem('previousSearch')) {
+    return
+  }
+  let loadedPreviousSearchResults = JSON.parse(sessionStorage.previousSearch);
+  $('.movies-wrap').html(loadedPreviousSearchResults.movieResults);
+  dataPoint.searchBar.value = loadedPreviousSearchResults.searchedText;
+  dataPoint.currentFilter = loadedPreviousSearchResults.searchedFilter;
+  dataPoint.searchBar.dispatchEvent(new Event('input'));
+
+  if (dataPoint.currentFilter === 'people') {
+    $('#radio-people').prop("checked", true);
+  }
+  sessionStorage.removeItem('previousSearch');
+}
+
+function closeButton() {
+  const iconClose = document.getElementById('closeIcon');
+  if (this.value.length > 0) {
+    iconClose.classList.remove('hidden');
+  }
+  else {
+    iconClose.classList.add('hidden');
+  }
+}
+
+function executeSearch() {
+  event.preventDefault();
+  sessionStorage.removeItem('totalResults');
+  let searchedText = $('#searchText').val();
+  if (searchedText !== '') {
+    if (dataPoint.currentFilter === 'people') {
+      getResults(searchedText, 0, 'people')
     }
     else {
-      getMovies(searchText, 0)
+      getResults(searchedText, 0, 'titles')
     }
-    currentSearch = searchText;
-    sessionStorage.setItem('searchedText', searchText);
-    sessionStorage.setItem('searchedFilter', filter)
+    sessionStorage.setItem('searchedText', searchedText);
+    sessionStorage.setItem('searchedFilter', dataPoint.currentFilter)
   }
 }
 
-
-let totalResults;
-
-
-function getPeople(searchText, page) {
-  $('.loader').addClass('active');
-
-  var data = {
+function getResults(searchText, page, filter) {
+  document.getElementById('loader').classList.add('active');
+  let requestURL = (filter==='titles' ? '/searchTitles' : '/searchPeople');
+  let data = {
     currentSearch: $.trim(searchText),
     page: page
   };
-  $.ajax({
-    url: '/searchPeople',
+  axios({
+    url: requestURL,
     data: data,
     method: 'POST'
   }).then((response) => {
-    console.log(response);
-    let movies = response.results;
-    if (response) {
-      totalResults = response.total;
-    }
-    let pagination = '';
-    let outputTitle = `
-          <div class="results-title"> <span>Netflix results for: '${searchText}'</span><span class="amount"> (${totalResults})<span> </div>
-          `;
-    if (totalResults === 0) {
-      console.log('did')
-      movies = 0;
+    let fetchedResults = response.data.results;
+    let totalResults = response.data.total;
+
+    let outputTitle = '';
+    let outputItems = '';
+    let outputPagination = '';
+
+    totalResults ? sessionStorage.setItem('totalResults', totalResults) : totalResults = sessionStorage.getItem('totalResults');
+
+    if (!fetchedResults) {
+      fetchedResults = '';
       outputTitle = `
           <div class="results-title"> <span>Nothing found for: '${searchText}'</span><p>check for errors and try again</p></div>
           `;
     }
-    let output = "";
-
-    $.each(movies, (index, movie) => {
-
-      output += `
-              <div onclick='movieSelected("${movie.netflixid}","${movie.title}")'  class="col-sm-6 col-md-4 col-lg-3 item-movie ">
-                <div class="well text-center result-bg">
-                  <h3 class="person-name"> ${movie.fullname}</h3>
-                  <h2 class="movie-name">${movie.title}</h2>
-                </div>
-              </div>
-            `;
-    });
-    if (totalResults > movies.length) {
-      console.log('more results available')
-      pagination += `
-            <div>
-             <button onclick='getPeople("${data.currentSearch}",${data.page + 1})' class="button-more">Show more results</button>
-            </div>
-          `;
-    }
-
-    $('#wrap-title').html(outputTitle);
-    if (data.page === 0) {
-      $('#movies').html(output);
-      $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'fast');
-    }
     else {
-      $('#movies').append(output)
-    }
-    $('#pagination').html(pagination);
-    $('.loader').removeClass('active');
-    $('#link1').addClass('active');
-  })
-}
-
-function getMovies(searchText, page) {
-  $('.loader').addClass('active');
-
-  var data = {
-    currentSearch: $.trim(searchText),
-    filter: filter,
-    page: page
-  };
-  $.ajax({
-    url: '/searchTitles',
-    data: data,
-    method: 'POST'
-  }).then((response) => {
-    console.log(response);
-    console.log(response.results);
-    let movies = response.results;
-    if (response.total) {
-      totalResults = response.total;
-    }
-    let pagination = '';
-    let outputTitle = `
-          <div class="results-title"> <span>Netflix results for: '${searchText}'</span><span class="amount"> (${totalResults})<span> </div>
-          `;
-    if (!totalResults || totalResults == 0) {
-      movies = 0;
       outputTitle = `
-          <div class="results-title"> <span>Nothing found for: '${searchText}'</span><p>check for errors and try again</p></div>
+          <div class="results-title"> <span>Netflix results for: '${searchText}'</span><span id="amount"> (${totalResults})<span> </div>
           `;
     }
-    let output = "";
-    var i;
-    $.each(movies, (index, movie) => {
-      if (!movie.img || movie.img === 'N/A') {
-        movie.img = 'img/404.svg'
-      }
-
-      output += `
-              <div onclick='movieSelected("${movie.nfid}","${movie.title}")'  class="col-sm-6 col-md-4 col-lg-3 item-movie">
-                <div class="well text-center">
-                  <div class="poster-frame">
-                    <div class="movie-rating-wrap">
-                      <span class="movie-rating"> 
-                      ${movie.imdbrating || '-'} 
-                      </span>
-                    </div>
-                    <img alt="poster of ${movie.title}" class="lazyload poster-img" src="images/def.svg" data-src="${movie.img}" onerror="imgError(this);">
-                  </div>  
-                  <h2 class="movie-name">${movie.title}</h2>
-                </div>
-              </div>
-            `;
-    });
-    if (totalResults > movies.length + 40 * page) {
-      console.log('more results available ' + movies.length + ' ' + page)
-      pagination += `
+    if (totalResults > fetchedResults.length + 40 * page) {
+      outputPagination += `
             <div>
-             <button onclick='getMovies("${data.currentSearch}",${data.page + 1})' class="button-more">Show more results</button>
+             <button onclick='getResults("${searchText}",${page+1}, "${filter}")' class="button-more">Show more results</button>
             </div>
           `;
     }
+    outputItems += displayResults(fetchedResults, filter)
 
-    $('#wrap-title').html(outputTitle);
+    document.getElementById('wrap-title').innerHTML = outputTitle;
     if (data.page === 0) {
-      $('#movies').html(output);
-      $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'fast');
+      document.getElementById('movies').innerHTML = outputItems;
+      $('html,body').animate({ scrollTop: $('#wrap-title').offset().top }, 'slow');
     }
     else {
-      $('#movies').append(output)
+      document.getElementById('movies').insertAdjacentHTML("beforeend", outputItems);
     }
-    $('#pagination').html(pagination);
-    $('.loader').removeClass('active');
-    $('#link1').addClass('active');
+    document.getElementById('pagination').innerHTML = outputPagination;
+    document.getElementById('loader').classList.remove('active');
   })
     .catch((err) => {
       console.log(err);
     });
 }
 
-function movieSelected(id, title) {
-  sessionStorage.setItem('movieId', id);
-  window.location = '/movie/' + id + '/' + title;
-  sessionStorage.setItem('lastSearch', $('.movies-wrap').html());
-  sessionStorage.setItem('searchedText', searchText.value);
-  sessionStorage.setItem('searchedFilter', filter);
-  return false;
+function displayResults(results, filter) {
+  let outputItems = ""
+  if (filter === 'titles') {
+    for (let movie in results) {
+      if (!results[movie].img || results[movie].img === 'N/A') {
+        results[movie].img = 'img/404.svg'
+      }
+      outputItems += `
+            <div onclick='movieSelected("${results[movie].nfid}","${results[movie].title}")'  class="col-sm-6 col-md-4 col-lg-3 item-movie">
+              <div class="well text-center">
+                <div class="poster-frame">
+                  <div class="movie-rating-wrap">
+                    <span class="movie-rating"> 
+                    ${results[movie].imdbrating || '-'} 
+                    </span>
+                  </div>
+                  <img alt="poster of ${results[movie].title}" class="lazyload poster-img" src="images/def.svg" data-src="${results[movie].img}" onerror="imgError(this);">
+                </div>  
+                <h2 class="movie-name">${results[movie].title}</h2>
+              </div>
+            </div>
+          `;
+    }
+  }
+  else {
+    for (let movie in results) {
+      outputItems += `
+      <div onclick='movieSelected("${results[movie].netflixid}","${results[movie].title}")'  class="col-sm-6 col-md-4 col-lg-3 item-movie ">
+        <div class="well text-center result-bg">
+          <h3 class="person-name"> ${results[movie].fullname}</h3>
+          <h2 class="movie-name">${results[movie].title}</h2>
+        </div>
+      </div>
+    `;
+    }
+  }
+  return outputItems
 }
 
+function movieSelected(id, title) {
+  sessionStorage.setItem('movieId', id);
+  window.location = '/movie/' + id + '=' + title;
 
+  previousSearchResults = {
+    searchedFilter: dataPoint.currentFilter,
+    searchedText: document.getElementById('searchText').value,
+    movieResults: document.getElementById('resultsWrap').innerHTML,
+  }
+  sessionStorage.setItem('previousSearch', JSON.stringify(previousSearchResults));
+}
+
+function clearSearch() {
+  dataPoint.searchBar.value = '';
+  dataPoint.searchBar.dispatchEvent(new Event('input'));
+
+  document.getElementById('movies').innerHTML = "";
+  document.getElementById('wrap-title').innerHTML = "";
+  document.getElementById('pagination').innerHTML = "";
+}
+
+function flagsSlider() {
+  $('.slider-item.passed').removeClass('passed');
+  $('.slider-img-' + dataPoint.currentFlag).addClass('passed').removeClass('active');
+  dataPoint.currentFlag++;
+
+  if (dataPoint.currentFlag === dataPoint.totalFlags) {
+    dataPoint.currentFlag = 0
+  }
+  $('.slider-img-' + dataPoint.currentFlag).addClass('active');
+  setTimeout(flagsSlider, 2000);
+}
